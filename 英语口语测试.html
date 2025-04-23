@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>英语口语测试</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px; margin: 5px; }
+        #question { margin: 20px 0; font-size: 18px; }
+        #feedback { color: green; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>英语口语测试 <span style="color: gray">DEMO版</span></h1>
+    <div id="question"></div>
+    <button id="startBtn">点击开始录制</button>
+    <button id="stopBtn" disabled>停止并提交</button>
+    <audio id="playback" controls></audio>
+    <div id="feedback"></div>
+
+    <script>
+        // 步骤1：定义题库（可自行修改问题和参考答案）
+        const questions = [
+            { 
+                text: "请用英语介绍你的家乡，限时1分钟。",
+                reference: "My hometown is a small city in China. It is famous for..."
+            }
+        ];
+
+        // 步骤2：初始化页面
+        let currentQuestionIndex = 0;
+        let mediaRecorder;
+        let audioChunks = [];
+
+        document.getElementById('question').innerHTML = `<b>题目：</b>${questions[currentQuestionIndex].text}`;
+
+        // 步骤3：录音功能
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                
+                mediaRecorder.onstop = () => {
+                    // 生成录音文件
+                    const blob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    // 显示播放器
+                    const audio = document.getElementById('playback');
+                    audio.src = url;
+                    
+                    // 模拟评分（实际项目需调用API，这里仅为演示）
+                    const feedback = document.getElementById('feedback');
+                    feedback.innerHTML = `
+                        <h3>测试结果（示例）</h3>
+                        <p>✔️ 发音：70分（部分单词需改进）</p>
+                        <p>✔️ 流利度：80分（有轻微停顿）</p>
+                        <p>参考回答：${questions[currentQuestionIndex].reference}</p>
+                    `;
+                };
+            });
+
+        // 按钮事件
+        document.getElementById('startBtn').onclick = () => {
+            audioChunks = [];
+            mediaRecorder.start();
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('feedback').innerHTML = "正在录音...";
+        };
+
+        document.getElementById('stopBtn').onclick = () => {
+            mediaRecorder.stop();
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+        };
+    </script>
+</body>
+</html>
